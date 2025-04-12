@@ -21,18 +21,23 @@ async def life_span(app: FastAPI):
 
 
 app = FastAPI(
-    lifespan=life_span
+    lifespan=life_span,
+    title="Users Service",
+    description="This is a users service for Blog Microservice",
 )
 
 
 app.mount(f"/{UPLOAD_DIRECTORY}/", StaticFiles(directory=UPLOAD_DIRECTORY), name="uploads")
 
 
+
+# =========== Root endpoint ============== #
 @app.get("/")
 async def root():
     return {"message": "Welcome to the blog user service"}
 
 
+# =========== User Registration ============== #
 @app.post("/register", 
           response_model=UserOut,
           
@@ -58,7 +63,8 @@ async def user_registration(user: UserIn):
     return await user_obj
 
 
-@app.post("/login",response_model=Token, )
+#========== User Login ============== #
+@app.post("/login/",response_model=Token, )
 async def login(user: LoginUser):
     print(user)
     data = user.model_dump()
@@ -103,6 +109,8 @@ async def login(user: LoginUser):
 
 
 
+
+# ========== User Login with OAuth2 ========== #
 @app.post("/token" )
 async def toeken(form_data: OAuth2PasswordRequestForm = Depends()):
     
@@ -193,7 +201,7 @@ async def profile_update(user_info:UserProfileIn=Depends(UserProfileIn.as_form),
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
             )
-            user__username
+           
         
         file_name = current_user.username
         profile = await UserProfile.filter(user_id=current_user.id).update(

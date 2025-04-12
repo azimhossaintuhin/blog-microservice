@@ -43,6 +43,22 @@ def decode_token(token:str):
             headers={"WWW-Authenticate": "Bearer"},
         )
         
+def blacklistToekn(token:str=Depends(oauth2_scheme)):
+    print("Token:", token)  # Debugging: Check the token being blacklisted
+    try:
+        payload = jwt.decode(token, SECRET_KEY , algorithms=[ALGORITHM])
+        if payload:
+            payload["exp"] = datetime.now() + timedelta(minutes=0)
+            token = create_access_token(payload, 0)
+            print("Blacklisted token:", token) 
+            print("balcklisted token value", decode_token(token))# Debugging: Check the blacklisted token
+        print(payload)
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
         
 async def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(

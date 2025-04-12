@@ -21,6 +21,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     lifespan=lifespan,
+    title="Blogs Service",
+    description="This is a blogs service for Blog Microservice",
 )
 
 
@@ -39,6 +41,16 @@ async def get_blogs():
         return {"message": "No blogs found"}
 
     return blogs
+
+@app.get("/blogs/{blog_id}", response_model=BlogOut)
+async def get_blog(blog_id: str):
+    blog = await Blog.filter(id=blog_id).prefetch_related("category").first().annotate(
+        read_count_value=Count("read_count")  
+    )
+    if not blog:
+        raise HTTPException(status_code=404, detail="Blog not found")
+    return blog
+
 
 @app.post("/blogs/create", response_model=BlogOut)
 async def create_blog(blog: BlogIn = Depends(BlogIn.as_form), current_user=Depends(verify_token)):

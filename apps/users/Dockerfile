@@ -7,7 +7,7 @@ RUN chmod 1777 /tmp
 
 
 COPY requirements.txt requirements.txt
-RUN pip install --upgrade pip
+
 RUN pip install -r requirements.txt
 
 COPY . .

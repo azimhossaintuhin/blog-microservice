@@ -2,7 +2,7 @@ FROM python:3.12-slim AS base
 WORKDIR /app
 RUN chmod 1777 /tmp
 COPY requirements.txt requirements.txt
-RUN pip install --upgrade pip
+
 RUN pip install -r requirements.txt
 COPY . .
 

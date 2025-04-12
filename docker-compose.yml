@@ -25,6 +25,11 @@ services:
       - DB_USER=mysql
       - DB_PASSWORD=mysql
       - DB_NAME=users_db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   user-db:
     image: mysql:latest
@@ -68,6 +73,11 @@ services:
         - DB_USER=mysql
         - DB_PASSWORD=mysql
         - DB_NAME=blogs_db
+      healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:3001/"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
   blog-db:
     image: mysql:latest
     container_name: blog-db
@@ -85,8 +95,46 @@ services:
       - MYSQL_USER=mysql
       - MYSQL_PASSWORD=mysql
     
+  # ======== comments apps ======== #
+  commnet-app:
+    build:
+      context: ./apps/comments
+      dockerfile: Dockerfile
+      target: development
+      args:
+        - PIP_INDEX_URL=https://pypi.org/simple/
+        - PIP_TRUSTED_HOST=pypi.org
+    container_name: comments-app
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./apps/comments:/app
+    networks:
+      - blog-app
+    depends_on:
+      - comments-db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3002/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+  comments-db:
+    image: mysql:latest
+    container_name: comments-db
+    ports:
+      - "3308:3306"
+    networks:
+      - blog-app
+    volumes:
+      - comment-db:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+      - /tmp:/tmp
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql
+      - MYSQL_DATABASE=comments_db
+      - MYSQL_USER=mysql
+      - MYSQL_PASSWORD=mysql
     
-
 
   phpmyadmin:
     image: phpmyadmin
@@ -96,7 +144,7 @@ services:
     networks:
       - blog-app
     environment:
-      - PMA_HOST=blog-db
+      - PMA_HOST=comments-db
       - PMA_PORT=3306
       - PMA_USER=mysql
       - PMA_PASSWORD=mysql
@@ -111,5 +159,5 @@ volumes:
     driver: local
   blog-db:
     driver: local
-  coomments-db:
+  comment-db:
     driver: local

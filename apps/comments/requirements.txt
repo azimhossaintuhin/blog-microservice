@@ -2,3 +2,5 @@ fastapi[standard]
 tortoise-orm[asyncmy]
 aerich[toml]
 aiofiles
+httpx[http2]
+cryptography
