@@ -1,0 +1,6 @@
+fastapi[standard]
+python-jose[cryptography]
+passlib[bcrypt]
+tortoise-orm[asyncmy]
+aerich[toml]
+aiofiles

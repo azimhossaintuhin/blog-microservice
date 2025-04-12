@@ -1,0 +1,115 @@
+services:
+  # ======== user apps ======== #
+  users-app:
+    build:
+      context: ./apps/users
+      dockerfile: Dockerfile
+      target: development
+      args:
+        - PIP_INDEX_URL=https://pypi.org/simple/
+        - PIP_TRUSTED_HOST=pypi.org
+    container_name: users-app
+
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./apps/users:/app
+    networks:
+      - blog-app
+    depends_on:
+      - user-db
+   
+    environment:
+      - DB_HOST=user-db
+      - DB_PORT=3306
+      - DB_USER=mysql
+      - DB_PASSWORD=mysql
+      - DB_NAME=users_db
+
+  user-db:
+    image: mysql:latest
+    container_name: user-db
+    restart: always
+    ports:
+      - "3306:3306"
+    networks:
+      - blog-app
+    volumes:
+      - user-db:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+      - /tmp:/tmp
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql
+      - MYSQL_DATABASE=users_db
+      - MYSQL_USER=mysql
+      - MYSQL_PASSWORD=mysql
+
+  # ======== blog apps ======== #
+  blogs-app:
+      build:
+        context: ./apps/blogs
+        dockerfile: Dockerfile
+        target: development
+        args:
+        - PIP_INDEX_URL=https://pypi.org/simple/
+        - PIP_TRUSTED_HOST=pypi.org
+      container_name: blogs-app
+      ports:
+        - "3001:3000"
+      volumes:
+        - ./apps/blogs:/app
+      networks: 
+        - blog-app
+      depends_on:
+        - blog-db
+      environment:
+        - DB_HOST=blog-db
+        - DB_PORT=3306
+        - DB_USER=mysql
+        - DB_PASSWORD=mysql
+        - DB_NAME=blogs_db
+  blog-db:
+    image: mysql:latest
+    container_name: blog-db
+    ports:
+      - "3307:3306"
+    networks:
+      - blog-app
+    volumes:
+      - blog-db:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+      - /tmp:/tmp
+    environment:
+      - MYSQL_ROOT_PASSWORD=mysql
+      - MYSQL_DATABASE=blogs_db
+      - MYSQL_USER=mysql
+      - MYSQL_PASSWORD=mysql
+    
+    
+
+
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: phpmyadmin
+    ports:
+      - "8080:80"
+    networks:
+      - blog-app
+    environment:
+      - PMA_HOST=blog-db
+      - PMA_PORT=3306
+      - PMA_USER=mysql
+      - PMA_PASSWORD=mysql
+
+# Network configurations
+networks:
+  blog-app:
+    driver: bridge
+
+volumes:
+  user-db:
+    driver: local
+  blog-db:
+    driver: local
+  coomments-db:
+    driver: local
